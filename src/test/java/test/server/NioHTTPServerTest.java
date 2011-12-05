@@ -10,10 +10,12 @@ import org.rack4java.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioServer;
 import org.stringtree.nio.server.http.HTTPRequestHandler;
+import org.stringtree.nio.server.http.HTTPRequestHandlerFactory;
 import org.stringtree.nio.server.http.HTTPServer;
-import org.stringtree.server.http.HTTPRequestProcessor;
+import org.stringtree.server.rack4java.RackRequestProcessor;
 
 import test.stubs.LocalServerApplication;
+import test.stubs.RecordingHandler;
 
 public class NioHTTPServerTest extends TestCase {
 	InetAddress localhost;
@@ -23,10 +25,7 @@ public class NioHTTPServerTest extends TestCase {
 	
 	public void setUp() throws IOException {
 		localhost = InetAddress.getByName("localhost");
-		Context<String> templates = new MapContext<String>();
-		
-		server = new HTTPServer(localhost, PORT, "", templates);
-		server.mountApplication("/", new LocalServerApplication());
+		server = new HTTPServer(localhost, PORT, new HTTPRequestHandlerFactory(new LocalServerApplication()));
 
 		assertTrue(server.activate(1000));
 		System.err.println("server started on port " + PORT + "...");
@@ -43,7 +42,7 @@ public class NioHTTPServerTest extends TestCase {
 	
 	private void call(NioServer nioServer, String text) throws IOException {
 		StringBuilder cbuf = new StringBuilder();
-		HTTPRequestProcessor processor = new HTTPRequestProcessor("", new MapContext<String>());
+		RackRequestProcessor processor = new RackRequestProcessor("", new MapContext<String>());
 		NioClient client = new NioClient(localhost, PORT, new RecordingHandler(cbuf, new HTTPRequestHandler(processor)));
 		assertTrue(client.activate(1000));
 		
@@ -82,11 +81,11 @@ public class NioHTTPServerTest extends TestCase {
 		buf.append(path);
 		buf.append(" ");
 		buf.append("HTTP/1.0\r\n");
-		buf.append(EmoConstants.RAW_HEADER_CONTENT_TYPE);
+		buf.append("Content-Type");
 		buf.append(": ");
 		buf.append(type);
 		buf.append("\r\n");
-		buf.append(EmoConstants.RAW_HEADER_CONTENT_LENGTH);
+		buf.append("Content-Length");
 		buf.append(": ");
 		buf.append(length);
 		buf.append("\r\n\r\n");

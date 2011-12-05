@@ -3,11 +3,14 @@ package org.stringtree.nio.http;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import org.rack4java.Rack;
 import org.rack4java.context.BagContext;
 import org.stringtree.nio.Block;
 import org.stringtree.nio.ProgressiveValidator;
 
 public class HTTPMessage extends BagContext<Object> {
+	static final String PREAMBLE_PREFIX = "http.preamble.";
+
 	private static final char NO_CHAR = (char) -1;
 	private static int SMALL = 65536;
 	private static enum State { P1, P2, P3, NAME, VALUE, BLANKLINE, BODY, COMPLETE, ERROR }
@@ -29,10 +32,9 @@ public class HTTPMessage extends BagContext<Object> {
 	
 	private boolean verbose = false;
 	
-	public HTTPMessage(String headerPrefix) {
+	public HTTPMessage() {
 		data = new LinkedList<Block>();
 		buf = new StringBuilder();
-		this.headerPrefix = headerPrefix;
 	}
 
 	public void setVerbose(boolean verbose) {
@@ -74,7 +76,7 @@ public class HTTPMessage extends BagContext<Object> {
 				}
 			} else if (State.VALUE == state) {
 				String headerValue = extractWord('\n', State.NAME, null).trim();
-				with(headerPrefix+headerName, headerValue);
+				with(Rack.HTTP_+headerName, headerValue);
 				if ("Content-Length".equalsIgnoreCase(headerName)) {
 					length = Integer.parseInt(headerValue);
 					if (verbose) System.err.println("HTTPMessage read content-length " + length);
@@ -95,7 +97,6 @@ public class HTTPMessage extends BagContext<Object> {
 					current.copy(bodybuffer, bodyCursor, toCopy);
 					bodyCursor += toCopy;
 					if (bodyCursor >= length) {
-						setBody(bodybuffer);
 						state = State.COMPLETE;
 					}
 					data.removeFirst();
@@ -120,7 +121,7 @@ public class HTTPMessage extends BagContext<Object> {
 	
 	private String extractPreamble(char end, State next, int index) {
 		String ret = extractWord(end, next, preambleValidator[index]);
-		if (null != ret) put(EmoConstants.PREAMBLE_PREFIX + index, ret);
+		if (null != ret) with(PREAMBLE_PREFIX + index, ret);
 		return ret;
 	}
 

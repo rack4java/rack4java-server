@@ -1,10 +1,13 @@
 package org.stringtree.nio.http;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.rack4java.Context;
+import org.rack4java.Rack;
 import org.rack4java.context.BagContext;
 import org.rack4java.context.MapContext;
+import org.stringtree.nio.server.http.HTTPResponse;
 
 public class HTTPAgent {
 	private static final byte[] empty = new byte[0];
@@ -13,10 +16,12 @@ public class HTTPAgent {
 	private Context<String> commonHeaders;
 	private Context<String> commonCookies;
 	
-	private static Map<Direction, String[]> defaults = new LiteralMap<HTTPAgent.Direction, String[]>(
-			Direction.REQUEST, new String[] { "GET", "/", "HTTP/1.0" }, 
-			Direction.RESPONSE, new String[] { "HTTP/1.0", "500", null } 
-		);
+	private static Map<Direction, String[]> defaults;
+	static {
+		defaults = new HashMap<HTTPAgent.Direction, String[]>();
+		defaults.put(Direction.REQUEST, new String[] { "GET", "/", "HTTP/1.0" }); 
+		defaults.put(Direction.RESPONSE, new String[] { "HTTP/1.0", "500", null }); 
+	}
 
 	public HTTPAgent(Context<String> commonHeaders, Context<String> commonCookies) {
 		this.commonHeaders = commonHeaders;
@@ -27,11 +32,11 @@ public class HTTPAgent {
 		this(new BagContext<String>(), new MapContext<String>());
 	}
 
-	public byte[][] buildHTTPMessage(Tract payload, Direction direction, Context<String> headers) {
+	public byte[][] buildHTTPMessage(HTTPMessage payload, Direction direction, Context<String> headers) {
 		String[] preamble = new String[] {
-			extractOrDefault(payload, EmoConstants.PREAMBLE_PREFIX+0, defaults.get(direction)[0]),
-			extractOrDefault(payload, EmoConstants.PREAMBLE_PREFIX+1, defaults.get(direction)[1]),
-			extractOrDefault(payload, EmoConstants.PREAMBLE_PREFIX+2, defaults.get(direction)[2])
+			extractOrDefault(payload, 0, defaults.get(direction)[0]),
+			extractOrDefault(payload, 1, defaults.get(direction)[1]),
+			extractOrDefault(payload, 2, defaults.get(direction)[2])
 		};
 		if (direction == Direction.RESPONSE && null == preamble[HTTPResponse.RESPONSE_MESSAGE]) {
 			preamble[HTTPResponse.RESPONSE_MESSAGE] = defaultMessage(preamble[HTTPResponse.RESPONSE_CODE]);
@@ -45,14 +50,9 @@ public class HTTPAgent {
 		return "OK";
 	}
 	
-	private String extractOrDefault(Context<String> context, String key, String dfl) {
-		String value = context.get(key);
-		if (null != value) {
-			context.remove(key);
-		} else {
-			value = dfl;
-		}
-		return value;
+	private String extractOrDefault(HTTPMessage message, int index, String dfl) {
+		String ret = message.getPreamble(index);
+		return null != ret ? ret : dfl;
 	}
 
 	public byte[][] buildHTTPMessage(String[] preamble, Tract payload, Context<String> requestHeaders) {
@@ -65,18 +65,18 @@ public class HTTPAgent {
 		header.append(preamble[2]);
 		header.append("\r\n");
 
-        if (null != commonCookies) for (ContextEntry<String> cookie : commonCookies) {
+        if (null != commonCookies) for (Map.Entry<String,String> cookie : commonCookies) {
 			addHeader("Cookie", cookie.getValue(), header);
         }
 
-        if (null != commonHeaders) for (ContextEntry<String> entry : commonHeaders) {
+        if (null != commonHeaders) for (Map.Entry<String,String> entry : commonHeaders) {
 			String name = entry.getKey();
-			if (!name.startsWith(EmoConstants.PREAMBLE_PREFIX)) {
+			if (!name.startsWith(HTTPMessage.PREAMBLE_PREFIX)) {
 				addHeader(name, entry.getValue(), header);
 			}
         }
 
-        if (null != requestHeaders) for (ContextEntry<String> entry : requestHeaders) {
+        if (null != requestHeaders) for (Map.Entry<String,String> entry : requestHeaders) {
 			addHeader(entry.getKey(), entry.getValue(), header);
         }
 
@@ -84,9 +84,9 @@ public class HTTPAgent {
         int length = 0;
         
         if (null != payload) {
-        	for (ContextEntry<String> entry : payload) {
-	        	if (entry.getKey().startsWith(EmoConstants.HEADER_PREFIX)) {
-					String name = entry.getKey().substring(EmoConstants.HEADER_PREFIX.length());
+        	for (Map.Entry<String,String> entry : payload) {
+	        	if (entry.getKey().startsWith(Rack.HTTP_)) {
+					String name = entry.getKey().substring(Rack.HTTP_.length());
 	        		if (!isProhibitedHeader(name)) {
 						addHeader(name, entry.getValue(), header);
 					}
@@ -95,17 +95,17 @@ public class HTTPAgent {
 
 			content = payload.getBodyAsBytes();
 			length = content.length;
-			String type = extractOrDefault(payload, EmoConstants.HEADER_CONTENT_TYPE, "text/plain");
+			String type = extractOrDefault(payload, Rack.HTTP_CONTENT_TYPE, "text/plain");
 	        
 			if (length > 0) {
-				addHeader(EmoConstants.RAW_HEADER_CONTENT_TYPE, type, header);
+				addHeader("Content-Type", type, header);
 			}
         } else {
         	content = empty;
         	length = 0;
         }
 
-		addHeader(EmoConstants.RAW_HEADER_CONTENT_LENGTH, length, header);
+		addHeader("Content-Length", length, header);
 		header.append("\r\n");
 		
 		return new byte[][] { header.toString().getBytes(), content };
@@ -113,12 +113,12 @@ public class HTTPAgent {
 
 	private boolean isProhibitedHeader(String name) {
 		return 
-			EmoConstants.RAW_HEADER_CONTENT_TYPE.equalsIgnoreCase(name) || 
-			EmoConstants.RAW_HEADER_CONTENT_LENGTH.equalsIgnoreCase(name);
+			"Content-Type".equalsIgnoreCase(name) || 
+			"Content-Length".equalsIgnoreCase(name);
 	}
 	
 	private void addHeader(String key, Object value, StringBuilder header) {
-		if (key.startsWith(EmoConstants.HEADER_PREFIX)) key = key.substring(EmoConstants.HEADER_PREFIX.length());
+		if (key.startsWith(Rack.HTTP_)) key = key.substring(Rack.HTTP_.length());
 		header.append(key);
 		header.append(": ");
 		header.append(value);
@@ -126,11 +126,11 @@ public class HTTPAgent {
 	}
     
     public void setHeader(String name, String value) {
-    	commonHeaders.put(name, value);
+    	commonHeaders.with(name, value);
     }
     
     public void setCookie(String name, String value) {
-       commonCookies.put(name, "$Version=0; " + name + "=" + value);
+       commonCookies.with(name, "$Version=0; " + name + "=" + value);
     }
 
 }

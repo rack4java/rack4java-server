@@ -1,6 +1,10 @@
 package test.stubs;
 
-public class LocalServerApplication {
+import org.rack4java.Context;
+import org.rack4java.Rack;
+import org.rack4java.RackResponse;
+
+public class LocalServerApplication implements Rack {
 	private boolean verbose;
 	
 	public LocalServerApplication(boolean verbose) {
@@ -11,13 +15,19 @@ public class LocalServerApplication {
 		this(false);
 	}
 
-	public String index() {
+	private RackResponse index() {
 		if (verbose) System.err.println("in LocalServerApplication.index");
-		return "hello";
+		return new RackResponse(200).withBody("hello");
 	}
 
-	public String ugh() {
+	private RackResponse ugh() {
 		if (verbose) System.err.println("in LocalServerApplication.ugh");
-		return "zot";
+		return new RackResponse(200).withBody("zot");
+	}
+
+	@Override public RackResponse call(Context<Object> environment) throws Exception {
+		String path = (String) environment.get(PATH_INFO);
+		if (path.endsWith("ugh")) return ugh();
+		return index();
 	}
 }

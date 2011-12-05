@@ -4,11 +4,11 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import org.stringtree.context.MapContext;
+import org.rack4java.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioServer;
 import org.stringtree.nio.server.http.HTTPRequestHandler;
-import org.stringtree.server.http.HTTPRequestProcessor;
+import org.stringtree.server.rack4java.RackRequestProcessor;
 
 import test.stubs.EchoHandler;
 import test.stubs.RecordingHandler;
@@ -49,7 +49,7 @@ public class NioServerTest extends TestCase {
 System.err.println("server started on port " + PORT + "...");
 
 		StringBuilder cbuf = new StringBuilder();
-		HTTPRequestProcessor processor = new HTTPRequestProcessor("", new MapContext<String>());
+		RackRequestProcessor processor = new RackRequestProcessor("", new MapContext<String>());
 		NioClient client = new NioClient(null, PORT, new RecordingHandler(cbuf, new HTTPRequestHandler(processor)));
 		assertTrue(client.activate(1000));
 		

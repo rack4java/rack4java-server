@@ -5,11 +5,10 @@ import java.net.InetAddress;
 
 import junit.framework.TestCase;
 
-import org.stringtree.Context;
-import org.stringtree.context.MapContext;
-import org.stringtree.emo.HTTPResponse;
+import org.rack4java.Rack;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.server.http.HTTPRequestHandlerFactory;
+import org.stringtree.nio.server.http.HTTPResponse;
 import org.stringtree.nio.server.http.HTTPResponseHandler;
 import org.stringtree.nio.server.http.HTTPServer;
 
@@ -22,11 +21,9 @@ public class WrappedHTTPServerTest extends TestCase {
 	HTTPServer server;
 	
 	public void setUp() throws IOException {
-		Object application = new LocalServerApplication();
-		Context<String> templates = new MapContext<String>();
+		Rack application = new LocalServerApplication();
 		
-		server = new HTTPServer(null, PORT, new HTTPRequestHandlerFactory("", templates));
-		server.mountApplication("/", application);
+		server = new HTTPServer(null, PORT, new HTTPRequestHandlerFactory(application));
 	}
 	
 	public void testRequest() throws IOException {

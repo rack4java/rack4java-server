@@ -6,13 +6,11 @@ import java.net.UnknownHostException;
 
 import junit.framework.TestCase;
 
-import org.stringtree.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioNode;
 import org.stringtree.nio.NioServer;
 import org.stringtree.nio.server.http.HTTPRequestHandler;
 import org.stringtree.nio.server.http.HTTPResponseHandler;
-import org.stringtree.server.http.HTTPRequestProcessor;
 
 import test.stubs.EchoHandler;
 import test.stubs.RecordingHandler;
@@ -28,8 +26,8 @@ public class NodeTests extends TestCase {
 	public void setUp() throws UnknownHostException {
 		localhost = InetAddress.getByName("localhost");
 		buf = new StringBuilder();
-		HTTPRequestProcessor processor = new HTTPRequestProcessor("", new MapContext<String>());
-		requestHandler = new HTTPRequestHandler(processor);
+//		HTTPRequestProcessor processor = new HTTPRequestProcessor("", new MapContext<String>());
+//		requestHandler = new HTTPRequestHandler(processor);
 		responseHandler = new HTTPResponseHandler();
 	}
 	

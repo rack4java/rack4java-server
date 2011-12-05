@@ -6,15 +6,16 @@ import java.nio.channels.SocketChannel;
 import org.stringtree.nio.Packet;
 import org.stringtree.nio.Sender;
 import org.stringtree.nio.http.HTTPAgent;
+import org.stringtree.nio.http.HTTPMessage;
 import org.stringtree.nio.http.HTTPPacketHandler;
-import org.stringtree.server.http.HTTPRequestProcessor;
+import org.stringtree.server.rack4java.RackRequestProcessor;
 
 public class HTTPRequestHandler extends HTTPPacketHandler {
 	
-	private HTTPRequestProcessor processor;
+	private RackRequestProcessor processor;
 	private HTTPAgent agent;
 	
-	public HTTPRequestHandler(HTTPRequestProcessor processor) {
+	public HTTPRequestHandler(RackRequestProcessor processor) {
 		super(new HTTPRequest());
 		this.processor = processor;
 		this.agent = new HTTPAgent();
@@ -36,7 +37,7 @@ public class HTTPRequestHandler extends HTTPPacketHandler {
 	}
 
 	public void respond(Sender sender, SocketChannel socket) throws IOException {
-		Tract response = processor.request(
+		HTTPMessage response = processor.request(
 				message.getPreamble(HTTPRequest.REQUEST_METHOD), 
 				message.getPreamble(HTTPRequest.REQUEST_RESOURCE), 
 				message.getPreamble(HTTPRequest.REQUEST_PROTOCOL), 
