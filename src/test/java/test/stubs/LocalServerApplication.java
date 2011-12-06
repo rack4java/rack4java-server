@@ -1,5 +1,7 @@
 package test.stubs;
 
+import java.util.Map;
+
 import org.rack4java.Context;
 import org.rack4java.Rack;
 import org.rack4java.RackResponse;
@@ -26,8 +28,21 @@ public class LocalServerApplication implements Rack {
 	}
 
 	@Override public RackResponse call(Context<Object> environment) throws Exception {
+System.err.println("LocalServerApplication call env=" + dumpContext(environment));
 		String path = (String) environment.get(PATH_INFO);
 		if (path.endsWith("ugh")) return ugh();
 		return index();
+	}
+
+	private String dumpContext(Context<Object> environment) {
+		StringBuilder ret = new StringBuilder("{ ");
+		for (Map.Entry<String, Object> entry : environment) {
+			ret.append(entry.getKey());
+			ret.append("=");
+			ret.append(entry.getValue());
+			ret.append(" ");
+		}
+		ret.append("}");
+		return ret.toString();
 	}
 }

@@ -189,4 +189,8 @@ public class HTTPMessage extends BagContext<Object> {
 	public boolean isValid() {
 		return state != State.ERROR;
 	}
+
+	public byte[] getBodyAsBytes() {
+		return null != bodybuffer ? bodybuffer : new byte[0];
+	}
 }

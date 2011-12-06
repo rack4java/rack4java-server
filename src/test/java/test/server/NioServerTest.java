@@ -4,6 +4,9 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
+import org.rack4java.Context;
+import org.rack4java.Rack;
+import org.rack4java.RackResponse;
 import org.rack4java.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioServer;
@@ -17,10 +20,16 @@ public class NioServerTest extends TestCase {
 	private static final int PORT = 24761;
 	StringBuilder buf;
 	NioServer server;
+	Rack application;
 	
 	public void setUp() {
 		buf = new StringBuilder();
 		server = new NioServer(null, PORT, new RecordingHandler(buf, new EchoHandler()));
+		application = new Rack() {
+			@Override public RackResponse call(Context<Object> environment) throws Exception {
+				return new RackResponse(200).withBody("OK");
+			}
+		};
 	}
 	
 	public void testBigBufferSmallText() throws IOException {
@@ -49,7 +58,7 @@ public class NioServerTest extends TestCase {
 System.err.println("server started on port " + PORT + "...");
 
 		StringBuilder cbuf = new StringBuilder();
-		RackRequestProcessor processor = new RackRequestProcessor("", new MapContext<String>());
+		RackRequestProcessor processor = new RackRequestProcessor(application);
 		NioClient client = new NioClient(null, PORT, new RecordingHandler(cbuf, new HTTPRequestHandler(processor)));
 		assertTrue(client.activate(1000));
 		

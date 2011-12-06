@@ -38,17 +38,17 @@ System.err.println("server started on port " + PORT + "...");
 		HTTPResponse response = new HTTPResponse();
 		HTTPResponseHandler responseHandler = new HTTPResponseHandler(response);
 		NioClient client = new NioClient(InetAddress.getLocalHost(), PORT, new RecordingHandler(cbuf, responseHandler));
-//		responseHandler.setVerbose(true);
+//responseHandler.setVerbose(true);
 		assertTrue(client.activate(1000));
 		
 		client.send(NioHTTPServerTest.simpleRequest("GET", "/", text));
 		
 		assertTrue(client.waitUntilHandled(1000));
-		assertTrue(client.deactivate(1000));
-		assertTrue(server.deactivate(1000));
+		assertTrue(client.deactivate(2000));
+		assertTrue(server.deactivate(2000));
 
 		System.err.println("server stopped");
-//		System.err.println("client buf: "  + cbuf);
+		System.err.println("client buf: "  + cbuf);
 		assertTrue(cbuf.toString().endsWith("hello"));
 	}
 

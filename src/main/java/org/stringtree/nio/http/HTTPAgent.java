@@ -46,7 +46,7 @@ public class HTTPAgent {
 
 	private String defaultMessage(String code) {
 		// TODO add different messages for different codes according to RFC 
-		if (code.startsWith("5")) return "Error";
+		if (code.startsWith("5")) return "Error!";
 		return "OK";
 	}
 	
@@ -54,8 +54,13 @@ public class HTTPAgent {
 		String ret = message.getPreamble(index);
 		return null != ret ? ret : dfl;
 	}
+	
+	private String extractOrDefault(HTTPMessage message, String key, String dfl) {
+		String ret = (String) message.get(key);
+		return null != ret ? ret : dfl;
+	}
 
-	public byte[][] buildHTTPMessage(String[] preamble, Tract payload, Context<String> requestHeaders) {
+	public byte[][] buildHTTPMessage(String[] preamble, HTTPMessage payload, Context<String> requestHeaders) {
 		StringBuilder header = new StringBuilder();
 		
 		header.append(preamble[0]);
@@ -84,7 +89,7 @@ public class HTTPAgent {
         int length = 0;
         
         if (null != payload) {
-        	for (Map.Entry<String,String> entry : payload) {
+        	for (Map.Entry<String,Object> entry : payload) {
 	        	if (entry.getKey().startsWith(Rack.HTTP_)) {
 					String name = entry.getKey().substring(Rack.HTTP_.length());
 	        		if (!isProhibitedHeader(name)) {

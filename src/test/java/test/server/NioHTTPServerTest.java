@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import junit.framework.TestCase;
 
 import org.rack4java.Context;
+import org.rack4java.Rack;
+import org.rack4java.RackResponse;
 import org.rack4java.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioServer;
@@ -22,10 +24,16 @@ public class NioHTTPServerTest extends TestCase {
 	static final int PORT = 24761;
 	
 	HTTPServer server;
+	Rack application;
 	
 	public void setUp() throws IOException {
 		localhost = InetAddress.getByName("localhost");
 		server = new HTTPServer(localhost, PORT, new HTTPRequestHandlerFactory(new LocalServerApplication()));
+		application = new Rack() {
+			@Override public RackResponse call(Context<Object> environment) throws Exception {
+				return new RackResponse(200).withBody("OK");
+			}
+		};
 
 		assertTrue(server.activate(1000));
 		System.err.println("server started on port " + PORT + "...");
@@ -42,7 +50,7 @@ public class NioHTTPServerTest extends TestCase {
 	
 	private void call(NioServer nioServer, String text) throws IOException {
 		StringBuilder cbuf = new StringBuilder();
-		RackRequestProcessor processor = new RackRequestProcessor("", new MapContext<String>());
+		RackRequestProcessor processor = new RackRequestProcessor(application);
 		NioClient client = new NioClient(localhost, PORT, new RecordingHandler(cbuf, new HTTPRequestHandler(processor)));
 		assertTrue(client.activate(1000));
 		
