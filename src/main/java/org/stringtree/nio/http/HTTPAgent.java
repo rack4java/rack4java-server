@@ -70,18 +70,18 @@ public class HTTPAgent {
 		header.append(preamble[2]);
 		header.append("\r\n");
 
-        if (null != commonCookies) for (Map.Entry<String,String> cookie : commonCookies) {
+        if (null != commonCookies) for (Map.Entry<String,Object> cookie : commonCookies) {
 			addHeader("Cookie", cookie.getValue(), header);
         }
 
-        if (null != commonHeaders) for (Map.Entry<String,String> entry : commonHeaders) {
+        if (null != commonHeaders) for (Map.Entry<String,Object> entry : commonHeaders) {
 			String name = entry.getKey();
 			if (!name.startsWith(HTTPMessage.PREAMBLE_PREFIX)) {
 				addHeader(name, entry.getValue(), header);
 			}
         }
 
-        if (null != requestHeaders) for (Map.Entry<String,String> entry : requestHeaders) {
+        if (null != requestHeaders) for (Map.Entry<String,Object> entry : requestHeaders) {
 			addHeader(entry.getKey(), entry.getValue(), header);
         }
 

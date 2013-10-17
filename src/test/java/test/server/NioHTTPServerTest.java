@@ -8,7 +8,6 @@ import junit.framework.TestCase;
 import org.rack4java.Context;
 import org.rack4java.Rack;
 import org.rack4java.RackResponse;
-import org.rack4java.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioServer;
 import org.stringtree.nio.server.http.HTTPRequestHandler;
@@ -30,7 +29,7 @@ public class NioHTTPServerTest extends TestCase {
 		localhost = InetAddress.getByName("localhost");
 		server = new HTTPServer(localhost, PORT, new HTTPRequestHandlerFactory(new LocalServerApplication()));
 		application = new Rack() {
-			@Override public RackResponse call(Context<Object> environment) throws Exception {
+			@Override public RackResponse call(Context<String> environment) throws Exception {
 				return new RackResponse(200).withBody("OK");
 			}
 		};

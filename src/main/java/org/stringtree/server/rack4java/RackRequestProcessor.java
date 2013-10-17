@@ -5,14 +5,13 @@ import java.util.Arrays;
 
 import org.rack4java.Context;
 import org.rack4java.Rack;
-import org.rack4java.RackResponse;
+import org.rack4java.context.FallbackContext;
 import org.rack4java.context.MapContext;
-import org.rack4java.utils.FallbackContext;
 import org.stringtree.nio.http.HTTPMessage;
 import org.stringtree.nio.server.http.HTTPResponse;
 
 public class RackRequestProcessor {
-	private static final Context<Object> commonEnvironment = new MapContext<Object>()
+	private static final Context<String> commonEnvironment = new MapContext<String>()
 	    .with(Rack.RACK_VERSION, Arrays.asList(0, 2))
 	    .with(Rack.RACK_ERRORS, System.err)
 	    .with(Rack.RACK_MULTITHREAD, true)
@@ -27,14 +26,14 @@ public class RackRequestProcessor {
 
 	public HTTPResponse request(String method, String path, String protocol, HTTPMessage request) throws IOException {
 		// TODO add headers and other stuff for a complete Rack request
-		Context<Object> topcontext = new MapContext<Object>()
+		Context<String> topcontext = new MapContext<String>()
 			.with(Rack.REQUEST_METHOD, method)
 			.with(Rack.PATH_INFO, path);
 		
-		@SuppressWarnings("unchecked") Context<Object> environment = new FallbackContext<Object>(topcontext, commonEnvironment);
+		@SuppressWarnings("unchecked") Context<String> environment = new FallbackContext<String>(topcontext, commonEnvironment);
 		HTTPResponse ret;
 		try {
-			RackResponse response = application.call(environment);
+			Context<String> response = application.call(environment);
 			ret = createHTTPResponse(response);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -44,7 +43,7 @@ public class RackRequestProcessor {
 		return ret;
 	}
 
-	private HTTPResponse createHTTPResponse(RackResponse response) {
+	private HTTPResponse createHTTPResponse(Context<String> response) {
 		return new HTTPResponse();
 	}
 

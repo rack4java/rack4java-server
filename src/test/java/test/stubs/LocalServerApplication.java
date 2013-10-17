@@ -27,14 +27,14 @@ public class LocalServerApplication implements Rack {
 		return new RackResponse(200).withBody("zot");
 	}
 
-	@Override public RackResponse call(Context<Object> environment) throws Exception {
+	@Override public RackResponse call(Context<String> environment) throws Exception {
 System.err.println("LocalServerApplication call env=" + dumpContext(environment));
 		String path = (String) environment.get(PATH_INFO);
 		if (path.endsWith("ugh")) return ugh();
 		return index();
 	}
 
-	private String dumpContext(Context<Object> environment) {
+	private String dumpContext(Context<String> environment) {
 		StringBuilder ret = new StringBuilder("{ ");
 		for (Map.Entry<String, Object> entry : environment) {
 			ret.append(entry.getKey());

@@ -7,7 +7,6 @@ import junit.framework.TestCase;
 import org.rack4java.Context;
 import org.rack4java.Rack;
 import org.rack4java.RackResponse;
-import org.rack4java.context.MapContext;
 import org.stringtree.nio.NioClient;
 import org.stringtree.nio.NioServer;
 import org.stringtree.nio.server.http.HTTPRequestHandler;
@@ -26,7 +25,7 @@ public class NioServerTest extends TestCase {
 		buf = new StringBuilder();
 		server = new NioServer(null, PORT, new RecordingHandler(buf, new EchoHandler()));
 		application = new Rack() {
-			@Override public RackResponse call(Context<Object> environment) throws Exception {
+			@Override public RackResponse call(Context<String> environment) throws Exception {
 				return new RackResponse(200).withBody("OK");
 			}
 		};
